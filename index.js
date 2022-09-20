@@ -65,9 +65,13 @@ function stopGame() {
     stopSpawningObstacles();
 }
 
+function resumeGame() {
+    startGame();
+}
+
 function pauseGame() {
     stopGame();
-    setMessage("PAUSED");
+    setMessage("PAUSED press P to resume");
 }
 
 function resetGame() {
@@ -109,9 +113,9 @@ function setupControls() {
     const keyUp = (e) => onKeyUp(e.key.toLowerCase());
 
     document.addEventListener("keydown", keyDown);
-    eventListeners.push(["keydown", keyDown]);
+    eventListeners.push([document, "keydown", keyDown]);
     document.addEventListener("keyup", keyUp);
-    eventListeners.push(["keyup", keyUp]);
+    eventListeners.push([document, "keyup", keyUp]);
 
     const startGameInitially = (e) => {
         if (
@@ -131,15 +135,33 @@ function setupControls() {
         "keydown",
         startGameInitially,
     );
-    eventListeners.push(["keydown", startGameInitially]);
+    eventListeners.push([
+        document,
+        "keydown",
+        startGameInitially,
+    ]);
+
+    const windowOnBlur = () => {
+        if (game.isGameOver) return;
+        pauseGame();
+    };
+    const windowOnFocus = () => {
+        // if (game.isGameOver) return;
+        // resumeGame();
+    };
+
+    window.addEventListener("blur", windowOnBlur);
+    eventListeners.push([window, "blur", windowOnBlur]);
+    window.addEventListener("focus", windowOnFocus);
+    eventListeners.push([window, "focus", windowOnFocus]);
 }
 
 function cleanupEventListeners() {
     let listener;
     while ((listener = eventListeners.pop())) {
-        document.removeEventListener(
-            listener[0],
+        listener[0].removeEventListener(
             listener[1],
+            listener[2],
         );
     }
 }
@@ -175,7 +197,7 @@ function togglePause() {
     if (game.isRunning) {
         pauseGame();
     } else {
-        startGame();
+        resumeGame();
     }
 }
 
