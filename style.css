@@ -10,6 +10,7 @@ body {
     width: 800px;
     height: 256px;
     background-color: #cccccc;
+    overflow: hidden;
 }
 
 #dino {

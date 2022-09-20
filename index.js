@@ -3,27 +3,41 @@ const HEIGHT = 256;
 const GRAVITY = 1;
 const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
+const OBSTACLE_SIZE = { width: 32, height: 64 };
 
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
 };
 
 const DINO_EL = document.querySelector("#dino");
+const OBSTACLES_EL = document.querySelector("#obstacles");
 
 const dino = {
-    x: 0,
+    x: 64,
     y: 0,
     width: 32,
     height: 64,
     yVelocity: 0,
     isOnGround: false,
     isJumping: false,
+    speed: 10,
 };
 const obstacles = [];
 
+const OBSTACLE_SPAWN_INTERVAL_MS = 1000;
+let obstacleSpawnInterval = null;
+
 function main() {
     setupControls();
+    setupObstacleSpawning();
     nextUpdate();
+}
+
+function setupObstacleSpawning() {
+    obstacleSpawnInterval = setInterval(
+        spawnObstacle,
+        OBSTACLE_SPAWN_INTERVAL_MS,
+    );
 }
 
 function setupControls() {
@@ -83,6 +97,7 @@ function stopJump() {
 function update() {
     handleGravity();
     moveDino();
+    moveObstacles();
 
     drawDino();
 
@@ -116,7 +131,52 @@ function moveDino() {
 }
 
 function drawDino() {
-    DINO_EL.style.top = `${dino.y}px`;
+    setElementPosition(DINO_EL, dino);
+}
+
+function spawnObstacle() {
+    const element = document.createElement("div");
+    element.classList.add("obstacle");
+
+    const obstacle = {
+        element,
+        x: WIDTH + OBSTACLE_SIZE.width,
+        y: HEIGHT - OBSTACLE_SIZE.height,
+        width: OBSTACLE_SIZE.width,
+        height: OBSTACLE_SIZE.height,
+    };
+
+    setElementPosition(element, obstacle);
+
+    obstacles.push(obstacle);
+    OBSTACLES_EL.appendChild(element);
+}
+
+function despawnObstacle(obstacleIndex) {
+    obstacles[obstacleIndex].element.remove();
+    obstacles.splice(obstacleIndex, 1);
+}
+
+function moveObstacles() {
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        obstacle.x -= dino.speed;
+        if (obstacle.x < -obstacle.width) {
+            despawnObstacle(i);
+            continue;
+        }
+
+        setElementPosition(obstacle.element, obstacle);
+    }
+}
+
+function setElementPosition(element, { x, y }) {
+    if (typeof x === "number") {
+        element.style.left = `${x}px`;
+    }
+    if (typeof y === "number") {
+        element.style.top = `${y}px`;
+    }
 }
 
 main();
