@@ -1,0 +1,30 @@
+body {
+    margin: 0;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+}
+
+#game {
+    position: relative;
+    width: 800px;
+    height: 256px;
+    background-color: #cccccc;
+}
+
+#dino {
+    position: absolute;
+    width: 32px;
+    height: 64px;
+    left: 64px;
+
+    background-color: blue;
+}
+
+.obstacle {
+    position: absolute;
+    width: 32px;
+    height: 64px;
+
+    background-color: black;
+}
