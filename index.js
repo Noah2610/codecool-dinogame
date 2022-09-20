@@ -8,37 +8,49 @@ const OBSTACLE_SIZE = { width: 32, height: 64 };
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
     pause: ["p", "escape"],
+    reset: ["r"],
 };
 
 const DINO_EL = document.querySelector("#dino");
 const OBSTACLES_EL = document.querySelector("#obstacles");
 const MESSAGE_EL = document.querySelector("#message");
 
-const dino = {
-    x: 64,
-    y: 0,
-    width: 32,
-    height: 64,
-    yVelocity: 0,
-    isOnGround: false,
-    isJumping: false,
-};
-const game = {
-    isRunning: false,
-    speed: 10,
-    obstacles: [],
-};
+let game;
+let dino;
 
 const OBSTACLE_SPAWN_INTERVAL_MS = 1000;
 let obstacleSpawnInterval = null;
 
+function createDinoState() {
+    return {
+        x: 64,
+        y: HEIGHT - 64,
+        width: 32,
+        height: 64,
+        yVelocity: 0,
+        isOnGround: false,
+        isJumping: false,
+        element: DINO_EL,
+    };
+}
+
+function createGameState() {
+    return {
+        isRunning: false,
+        isGameOver: false,
+        speed: 10,
+        obstacles: [],
+    };
+}
+
 function main() {
+    resetGame();
     setupControls();
     // startGame();
 }
 
 function startGame() {
-    if (game.isRunning) return;
+    if (game.isGameOver || game.isRunning) return;
 
     game.isRunning = true;
     clearMessage();
@@ -58,6 +70,21 @@ function pauseGame() {
     setMessage("PAUSED");
 }
 
+function resetGame() {
+    game = createGameState();
+    dino = createDinoState();
+    setElementPosition(dino.element, dino);
+    OBSTACLES_EL.innerHTML = "";
+    setMessage("Press SPACE to start!");
+    setupControls();
+}
+
+function gameOver() {
+    stopGame();
+    game.isGameOver = true;
+    setMessage("GAME OVER press R to reset");
+}
+
 function startSpawningObstacles() {
     stopSpawningObstacles();
     obstacleSpawnInterval = setInterval(
@@ -73,14 +100,18 @@ function stopSpawningObstacles() {
     }
 }
 
+let eventListeners = [];
 function setupControls() {
-    document.addEventListener(
-        "keydown",
-        (e) => !e.repeat && onKeyDown(e.key.toLowerCase()),
-    );
-    document.addEventListener("keyup", (e) =>
-        onKeyUp(e.key.toLowerCase()),
-    );
+    cleanupEventListeners();
+
+    const keyDown = (e) =>
+        !e.repeat && onKeyDown(e.key.toLowerCase());
+    const keyUp = (e) => onKeyUp(e.key.toLowerCase());
+
+    document.addEventListener("keydown", keyDown);
+    eventListeners.push(["keydown", keyDown]);
+    document.addEventListener("keyup", keyUp);
+    eventListeners.push(["keyup", keyUp]);
 
     const startGameInitially = (e) => {
         if (
@@ -100,7 +131,17 @@ function setupControls() {
         "keydown",
         startGameInitially,
     );
-    setMessage("Press SPACE to start!");
+    eventListeners.push(["keydown", startGameInitially]);
+}
+
+function cleanupEventListeners() {
+    let listener;
+    while ((listener = eventListeners.pop())) {
+        document.removeEventListener(
+            listener[0],
+            listener[1],
+        );
+    }
 }
 
 function onKeyDown(key) {
@@ -112,6 +153,9 @@ function onKeyDown(key) {
             break;
         case "pause":
             togglePause();
+            break;
+        case "reset":
+            resetGame();
             break;
     }
 }
@@ -169,6 +213,7 @@ function update() {
     handleGravity();
     moveDino();
     moveObstacles();
+    handleCollision();
 
     drawDino();
 
@@ -202,7 +247,7 @@ function moveDino() {
 }
 
 function drawDino() {
-    setElementPosition(DINO_EL, dino);
+    setElementPosition(dino.element, dino);
 }
 
 function spawnObstacle() {
@@ -245,6 +290,15 @@ function moveObstacles() {
     }
 }
 
+function handleCollision() {
+    for (const obstacle of game.obstacles) {
+        if (doEntitiesCollide(dino, obstacle)) {
+            gameOver();
+            return;
+        }
+    }
+}
+
 function setElementPosition(element, { x, y }) {
     if (typeof x === "number") {
         element.style.left = `${x}px`;
@@ -252,6 +306,23 @@ function setElementPosition(element, { x, y }) {
     if (typeof y === "number") {
         element.style.top = `${y}px`;
     }
+}
+
+function doEntitiesCollide(entityA, entityB) {
+    const aLef = entityA.x;
+    const aRig = entityA.x + entityA.width;
+    const aTop = entityA.y;
+    const aBot = entityA.y + entityA.height;
+    const bLef = entityB.x;
+    const bRig = entityB.x + entityB.width;
+    const bTop = entityB.y;
+    const bBot = entityB.y + entityB.height;
+
+    // prettier-ignore
+    return (
+        ((aLef >= bLef && aLef < bRig) || (aLef <= bLef && aRig > bLef)) &&
+        ((aTop >= bTop && aTop < bBot) || (aTop <= bTop && aBot > bTop))
+    );
 }
 
 function setMessage(msg) {
