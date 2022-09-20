@@ -4,6 +4,7 @@ const GRAVITY = 1;
 const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
 const OBSTACLE_SIZE = { width: 32, height: 64 };
+const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
 
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
@@ -15,6 +16,8 @@ const DINO_EL = document.querySelector("#dino");
 const OBSTACLES_EL = document.querySelector("#obstacles");
 const MESSAGE_EL = document.querySelector("#message");
 const SCORE_EL = document.querySelector("#score");
+const HIGHSCORE_MESSAGE_EL =
+    document.querySelector("#highscore");
 
 let game;
 let dino;
@@ -84,12 +87,52 @@ function resetGame() {
     setMessage("Press SPACE to start!");
     setupControls();
     renderScore(game.score);
+    clearHighscoreMessage();
 }
 
 function gameOver() {
     stopGame();
     game.isGameOver = true;
     setMessage("GAME OVER press R to reset");
+    handleHighscore();
+}
+
+function handleHighscore() {
+    const highscore = getHighscore();
+    if (game.score > highscore) {
+        saveHighscore(game.score);
+        setHighscoreMessage("New Highscore!");
+    } else {
+        setHighscoreMessage(`Highscore: ${highscore}`);
+    }
+}
+
+function getHighscore() {
+    const value = window.localStorage.getItem(
+        LOCALSTORAGE_HIGHSCORE_KEY,
+    );
+    if (value === null) {
+        return 0;
+    }
+
+    const highscore = parseInt(value);
+    return Number.isNaN(highscore) ? 0 : highscore;
+}
+
+function saveHighscore(score) {
+    window.localStorage.setItem(
+        LOCALSTORAGE_HIGHSCORE_KEY,
+        score.toString(),
+    );
+}
+
+function setHighscoreMessage(msg) {
+    HIGHSCORE_MESSAGE_EL.innerText = msg;
+    HIGHSCORE_MESSAGE_EL.classList.remove("hidden");
+}
+
+function clearHighscoreMessage() {
+    HIGHSCORE_MESSAGE_EL.classList.add("hidden");
 }
 
 function startSpawningObstacles() {
