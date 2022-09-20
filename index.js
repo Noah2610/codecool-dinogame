@@ -14,6 +14,7 @@ const CONTROLS = {
 const DINO_EL = document.querySelector("#dino");
 const OBSTACLES_EL = document.querySelector("#obstacles");
 const MESSAGE_EL = document.querySelector("#message");
+const SCORE_EL = document.querySelector("#score");
 
 let game;
 let dino;
@@ -40,6 +41,7 @@ function createGameState() {
         isGameOver: false,
         speed: 10,
         obstacles: [],
+        score: 0,
     };
 }
 
@@ -81,6 +83,7 @@ function resetGame() {
     OBSTACLES_EL.innerHTML = "";
     setMessage("Press SPACE to start!");
     setupControls();
+    renderScore(game.score);
 }
 
 function gameOver() {
@@ -236,6 +239,7 @@ function update() {
     moveDino();
     moveObstacles();
     handleCollision();
+    handleScore();
 
     drawDino();
 
@@ -286,6 +290,7 @@ function spawnObstacle() {
         y: HEIGHT - OBSTACLE_SIZE.height,
         width: OBSTACLE_SIZE.width,
         height: OBSTACLE_SIZE.height,
+        didScore: false,
     };
 
     setElementPosition(element, obstacle);
@@ -319,6 +324,22 @@ function handleCollision() {
             return;
         }
     }
+}
+
+function handleScore() {
+    for (const obstacle of game.obstacles) {
+        if (
+            !obstacle.didScore &&
+            obstacle.x + obstacle.width < dino.x
+        ) {
+            obstacle.didScore = true;
+            renderScore(++game.score);
+        }
+    }
+}
+
+function renderScore(score) {
+    SCORE_EL.innerText = score;
 }
 
 function setElementPosition(element, { x, y }) {
