@@ -404,10 +404,11 @@ function doEntitiesCollide(entityA, entityB) {
     const bTop = entityB.y;
     const bBot = entityB.y + entityB.height;
 
-    // prettier-ignore
     return (
-        ((aLef >= bLef && aLef < bRig) || (aLef <= bLef && aRig > bLef)) &&
-        ((aTop >= bTop && aTop < bBot) || (aTop <= bTop && aBot > bTop))
+        aLef <= bRig &&
+        aRig >= bLef &&
+        aTop <= bBot &&
+        aBot >= bTop
     );
 }
 
