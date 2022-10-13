@@ -5,6 +5,9 @@ const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
 const OBSTACLE_SIZE = { width: 32, height: 64 };
 const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
+const UPDATE_INTERVAL_MS = 1000 / 60;
+
+let UPDATE_INTERVAL_ID = null;
 
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
@@ -60,7 +63,7 @@ function startGame() {
     game.isRunning = true;
     clearMessage();
     startSpawningObstacles();
-    nextUpdate();
+    startUpdateLoop();
 }
 
 function stopGame() {
@@ -68,6 +71,7 @@ function stopGame() {
 
     game.isRunning = false;
     stopSpawningObstacles();
+    stopUpdateLoop();
 }
 
 function resumeGame() {
@@ -285,12 +289,21 @@ function update() {
     handleScore();
 
     drawDino();
-
-    nextUpdate();
 }
 
-function nextUpdate() {
-    window.requestAnimationFrame(update);
+function startUpdateLoop() {
+    stopUpdateLoop();
+    UPDATE_INTERVAL_ID = setInterval(
+        update,
+        UPDATE_INTERVAL_MS,
+    );
+}
+
+function stopUpdateLoop() {
+    if (UPDATE_INTERVAL_ID !== null) {
+        clearInterval(UPDATE_INTERVAL_ID);
+        UPDATE_INTERVAL_ID = null;
+    }
 }
 
 function handleGravity() {
