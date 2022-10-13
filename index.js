@@ -7,7 +7,7 @@ const OBSTACLE_SIZE = { width: 32, height: 64 };
 const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
 const UPDATE_INTERVAL_MS = 1000 / 60;
 
-let UPDATE_INTERVAL_ID = null;
+let updateInterval = null;
 
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
@@ -25,8 +25,8 @@ const HIGHSCORE_MESSAGE_EL =
 let game;
 let dino;
 
-const OBSTACLE_SPAWN_INTERVAL_MS = 1000;
-let obstacleSpawnInterval = null;
+const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
+let obstacleSpawnTimeout = null;
 
 function createDinoState() {
     return {
@@ -141,16 +141,30 @@ function clearHighscoreMessage() {
 
 function startSpawningObstacles() {
     stopSpawningObstacles();
-    obstacleSpawnInterval = setInterval(
-        spawnObstacle,
-        OBSTACLE_SPAWN_INTERVAL_MS,
+    const setSpawnTimeout = () => {
+        obstacleSpawnTimeout = setTimeout(() => {
+            spawnObstacle();
+            setSpawnTimeout();
+        }, getRandomObstacleSpawnDelay());
+    };
+    setSpawnTimeout();
+}
+
+function getRandomObstacleSpawnDelay() {
+    return randomInRange(
+        OBSTACLE_SPAWN_INTERVAL_MS_RANGE[0],
+        OBSTACLE_SPAWN_INTERVAL_MS_RANGE[1],
     );
 }
 
+function randomInRange(min, max) {
+    return min + Math.floor(Math.random() * (max - min));
+}
+
 function stopSpawningObstacles() {
-    if (obstacleSpawnInterval !== null) {
-        clearInterval(obstacleSpawnInterval);
-        obstacleSpawnInterval = null;
+    if (obstacleSpawnTimeout !== null) {
+        clearTimeout(obstacleSpawnTimeout);
+        obstacleSpawnTimeout = null;
     }
 }
 
@@ -293,16 +307,16 @@ function update() {
 
 function startUpdateLoop() {
     stopUpdateLoop();
-    UPDATE_INTERVAL_ID = setInterval(
+    updateInterval = setInterval(
         update,
         UPDATE_INTERVAL_MS,
     );
 }
 
 function stopUpdateLoop() {
-    if (UPDATE_INTERVAL_ID !== null) {
-        clearInterval(UPDATE_INTERVAL_ID);
-        UPDATE_INTERVAL_ID = null;
+    if (updateInterval !== null) {
+        clearInterval(updateInterval);
+        updateInterval = null;
     }
 }
 
