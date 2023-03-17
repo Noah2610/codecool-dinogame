@@ -26,19 +26,25 @@ body {
 
 #dino {
     position: absolute;
-    width: 32px;
+    width: 64px;
     height: 64px;
     left: 64px;
 
-    background-color: blue;
+    /* background-color: blue; */
 }
 
 .obstacle {
     position: absolute;
-    width: 32px;
+    width: 64px;
     height: 64px;
 
-    background-color: black;
+    /* background-color: black; */
+}
+
+#dino > img,
+.obstacle > img {
+    width: 100%;
+    height: 100%;
 }
 
 #message {

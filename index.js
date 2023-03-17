@@ -3,11 +3,17 @@ const HEIGHT = 256;
 const GRAVITY = 1;
 const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
-const OBSTACLE_SIZE = { width: 32, height: 64 };
+const OBSTACLE_SIZE = { width: 64, height: 64 };
 const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
 const UPDATE_INTERVAL_MS = 1000 / 60;
+const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
+const ANIMATION_INTERVAL_MS = 250;
 
-let updateInterval = null;
+const ANIMATIONS = {
+    run: ["assets/rabbit-sit.png", "assets/rabbit-stand.png"],
+    jump: ["assets/rabbit-jump.png"],
+    obstacle: ["assets/egg-0.png", "assets/egg-1.png"],
+};
 
 const CONTROLS = {
     jump: [" ", "w", "arrowup"],
@@ -19,24 +25,29 @@ const DINO_EL = document.querySelector("#dino");
 const OBSTACLES_EL = document.querySelector("#obstacles");
 const MESSAGE_EL = document.querySelector("#message");
 const SCORE_EL = document.querySelector("#score");
-const HIGHSCORE_MESSAGE_EL =
-    document.querySelector("#highscore");
+const HIGHSCORE_MESSAGE_EL = document.querySelector("#highscore");
+
+let eventListeners = [];
+let obstacleSpawnTimeout = null;
+let updateInterval = null;
+let animationInterval = null;
 
 let game;
 let dino;
-
-const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
-let obstacleSpawnTimeout = null;
 
 function createDinoState() {
     return {
         x: 64,
         y: HEIGHT - 64,
-        width: 32,
+        width: 64,
         height: 64,
         yVelocity: 0,
         isOnGround: false,
         isJumping: false,
+        animation: {
+            frame: 0,
+            images: ANIMATIONS.run,
+        },
         element: DINO_EL,
     };
 }
@@ -47,6 +58,7 @@ function createGameState() {
         isGameOver: false,
         speed: 10,
         obstacles: [],
+        entities: [],
         score: 0,
     };
 }
@@ -63,6 +75,7 @@ function startGame() {
     game.isRunning = true;
     clearMessage();
     startSpawningObstacles();
+    startAnimations();
     startUpdateLoop();
 }
 
@@ -71,6 +84,7 @@ function stopGame() {
 
     game.isRunning = false;
     stopSpawningObstacles();
+    stopAnimations();
     stopUpdateLoop();
 }
 
@@ -86,6 +100,7 @@ function pauseGame() {
 function resetGame() {
     game = createGameState();
     dino = createDinoState();
+    addEntity(dino);
     setElementPosition(dino.element, dino);
     OBSTACLES_EL.innerHTML = "";
     setMessage("Press SPACE to start!");
@@ -112,9 +127,7 @@ function handleHighscore() {
 }
 
 function getHighscore() {
-    const value = window.localStorage.getItem(
-        LOCALSTORAGE_HIGHSCORE_KEY,
-    );
+    const value = window.localStorage.getItem(LOCALSTORAGE_HIGHSCORE_KEY);
     if (value === null) {
         return 0;
     }
@@ -124,10 +137,7 @@ function getHighscore() {
 }
 
 function saveHighscore(score) {
-    window.localStorage.setItem(
-        LOCALSTORAGE_HIGHSCORE_KEY,
-        score.toString(),
-    );
+    window.localStorage.setItem(LOCALSTORAGE_HIGHSCORE_KEY, score.toString());
 }
 
 function setHighscoreMessage(msg) {
@@ -168,12 +178,39 @@ function stopSpawningObstacles() {
     }
 }
 
-let eventListeners = [];
+function startAnimations() {
+    stopAnimations();
+    animationInterval = setInterval(updateAnimations, ANIMATION_INTERVAL_MS);
+}
+
+function stopAnimations() {
+    if (animationInterval === null) return;
+    clearInterval(animationInterval);
+    animationInterval = null;
+}
+
+function updateAnimations() {
+    game.entities
+        .filter((entity) => entity.animation)
+        .forEach((entity) => {
+            const imgEl = entity.element.querySelector("img");
+            if (!imgEl) {
+                console.error("Entity has animation but no image", entity);
+                return;
+            }
+
+            const anim = entity.animation;
+            entity.animation.frame = (anim.frame + 1) % anim.images.length;
+
+            const image = anim.images[anim.frame];
+            imgEl.src = image;
+        });
+}
+
 function setupControls() {
     cleanupEventListeners();
 
-    const keyDown = (e) =>
-        !e.repeat && onKeyDown(e.key.toLowerCase());
+    const keyDown = (e) => !e.repeat && onKeyDown(e.key.toLowerCase());
     const keyUp = (e) => onKeyUp(e.key.toLowerCase());
 
     document.addEventListener("keydown", keyDown);
@@ -182,28 +219,16 @@ function setupControls() {
     eventListeners.push([document, "keyup", keyUp]);
 
     const startGameInitially = (e) => {
-        if (
-            getActionForKey(e.key.toLowerCase()) !== "jump"
-        ) {
+        if (getActionForKey(e.key.toLowerCase()) !== "jump") {
             return;
         }
 
         clearMessage();
         startGame();
-        document.removeEventListener(
-            "keydown",
-            startGameInitially,
-        );
+        document.removeEventListener("keydown", startGameInitially);
     };
-    document.addEventListener(
-        "keydown",
-        startGameInitially,
-    );
-    eventListeners.push([
-        document,
-        "keydown",
-        startGameInitially,
-    ]);
+    document.addEventListener("keydown", startGameInitially);
+    eventListeners.push([document, "keydown", startGameInitially]);
 
     const windowOnBlur = () => {
         if (game.isGameOver) return;
@@ -223,10 +248,7 @@ function setupControls() {
 function cleanupEventListeners() {
     let listener;
     while ((listener = eventListeners.pop())) {
-        listener[0].removeEventListener(
-            listener[1],
-            listener[2],
-        );
+        listener[0].removeEventListener(listener[1], listener[2]);
     }
 }
 
@@ -284,10 +306,7 @@ function jump() {
 function stopJump() {
     if (!dino.isJumping) return;
 
-    dino.yVelocity = Math.max(
-        JUMP_STOP_VELOCITY,
-        dino.yVelocity,
-    );
+    dino.yVelocity = Math.max(JUMP_STOP_VELOCITY, dino.yVelocity);
     dino.isJumping = false;
 }
 
@@ -307,10 +326,7 @@ function update() {
 
 function startUpdateLoop() {
     stopUpdateLoop();
-    updateInterval = setInterval(
-        update,
-        UPDATE_INTERVAL_MS,
-    );
+    updateInterval = setInterval(update, UPDATE_INTERVAL_MS);
 }
 
 function stopUpdateLoop() {
@@ -354,6 +370,10 @@ function spawnObstacle() {
     const element = document.createElement("div");
     element.classList.add("obstacle");
 
+    const img = document.createElement("img");
+    img.setAttribute("src", ANIMATIONS.obstacle[0]);
+    element.appendChild(img);
+
     const obstacle = {
         element,
         x: WIDTH + OBSTACLE_SIZE.width,
@@ -361,10 +381,15 @@ function spawnObstacle() {
         width: OBSTACLE_SIZE.width,
         height: OBSTACLE_SIZE.height,
         didScore: false,
+        animation: {
+            frame: 0,
+            images: ANIMATIONS.obstacle,
+        },
     };
 
     setElementPosition(element, obstacle);
 
+    addEntity(obstacle);
     game.obstacles.push(obstacle);
     OBSTACLES_EL.appendChild(element);
 }
@@ -398,14 +423,15 @@ function handleCollision() {
 
 function handleScore() {
     for (const obstacle of game.obstacles) {
-        if (
-            !obstacle.didScore &&
-            obstacle.x + obstacle.width < dino.x
-        ) {
+        if (!obstacle.didScore && obstacle.x + obstacle.width < dino.x) {
             obstacle.didScore = true;
             renderScore(++game.score);
         }
     }
+}
+
+function addEntity(entity) {
+    game.entities.push(entity);
 }
 
 function renderScore(score) {
@@ -431,12 +457,7 @@ function doEntitiesCollide(entityA, entityB) {
     const bTop = entityB.y;
     const bBot = entityB.y + entityB.height;
 
-    return (
-        aLef <= bRig &&
-        aRig >= bLef &&
-        aTop <= bBot &&
-        aBot >= bTop
-    );
+    return aLef <= bRig && aRig >= bLef && aTop <= bBot && aBot >= bTop;
 }
 
 function setMessage(msg) {
