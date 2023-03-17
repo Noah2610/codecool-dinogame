@@ -1,6 +1,10 @@
 :root {
+    --game-width: 800px;
+    --game-height: 320px;
     --rabbit-width: 64px;
     --rabbit-height: 118px;
+    --rabbit-width-in-air: 134px;
+    --rabbit-height-in-air: 80px;
     --egg-width: 64px;
     --egg-height: 81px;
 }
@@ -25,8 +29,8 @@ body {
 
 #game {
     position: relative;
-    width: 800px;
-    height: 256px;
+    width: var(--game-width);
+    height: var(--game-height);
     background-color: #cccccc;
     overflow: hidden;
 }
@@ -38,6 +42,11 @@ body {
     left: 64px;
 
     /* background-color: blue; */
+}
+
+#dino.in-air {
+    width: var(--rabbit-width-in-air);
+    height: var(--rabbit-height-in-air);
 }
 
 .obstacle {

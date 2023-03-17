@@ -1,5 +1,5 @@
 const WIDTH = 800;
-const HEIGHT = 256;
+const HEIGHT = 320;
 const GRAVITY = 1;
 const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
@@ -191,21 +191,21 @@ function stopAnimations() {
 }
 
 function updateAnimations() {
-    game.entities
-        .filter((entity) => entity.animation)
-        .forEach((entity) => {
-            const imgEl = entity.element.querySelector("img");
-            if (!imgEl) {
-                console.error("Entity has animation but no image", entity);
-                return;
-            }
+    game.entities.filter((entity) => entity.animation).forEach(updateAnimation);
+}
 
-            const anim = entity.animation;
-            entity.animation.frame = (anim.frame + 1) % anim.images.length;
+function updateAnimation(entity) {
+    const imgEl = entity.element.querySelector("img");
+    if (!imgEl) {
+        console.error("Entity has animation but no image", entity);
+        return;
+    }
 
-            const image = anim.images[anim.frame];
-            imgEl.src = image;
-        });
+    const anim = entity.animation;
+    entity.animation.frame = (anim.frame + 1) % anim.images.length;
+
+    const image = anim.images[anim.frame];
+    imgEl.src = image;
 }
 
 function setupControls() {
@@ -258,7 +258,7 @@ function onKeyDown(key) {
     switch (action) {
         case "jump":
             if (!game.isRunning) return;
-            jump();
+            startJump();
             break;
         case "pause":
             togglePause();
@@ -296,12 +296,15 @@ function getActionForKey(key) {
     }
 }
 
-function jump() {
+function startJump() {
     if (!dino.isOnGround || dino.isJumping) return;
 
     dino.yVelocity = JUMP_STRENGTH;
     dino.isJumping = true;
     dino.isOnGround = false;
+    dino.element.classList.add("in-air");
+
+    setAnimation(dino, ANIMATIONS.jump);
 }
 
 function stopJump() {
@@ -309,6 +312,14 @@ function stopJump() {
 
     dino.yVelocity = Math.max(JUMP_STOP_VELOCITY, dino.yVelocity);
     dino.isJumping = false;
+}
+
+function setAnimation(entity, images) {
+    entity.animation = {
+        frame: 0,
+        images,
+    };
+    updateAnimation(entity);
 }
 
 function update() {
@@ -351,12 +362,18 @@ function moveDino() {
     let y = dino.y;
     y += dino.yVelocity;
 
-    if (dino.yVelocity > 0 && yBottom >= HEIGHT) {
+    if (dino.yVelocity > 0 && yBottom >= HEIGHT && !dino.isOnGround) {
         y = HEIGHT - dino.height;
-        dino.isOnGround = true;
+        onHitGround(dino);
     }
 
     dino.y = y;
+}
+
+function onHitGround(dino) {
+    dino.isOnGround = true;
+    dino.element.classList.remove("in-air");
+    setAnimation(dino, ANIMATIONS.run);
 }
 
 function drawDino() {
