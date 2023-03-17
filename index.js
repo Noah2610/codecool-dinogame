@@ -3,7 +3,8 @@ const HEIGHT = 256;
 const GRAVITY = 1;
 const JUMP_STRENGTH = -20;
 const JUMP_STOP_VELOCITY = -4;
-const OBSTACLE_SIZE = { width: 64, height: 64 };
+const DINO_SIZE = { width: 64, height: 118 };
+const OBSTACLE_SIZE = { width: 64, height: 81 };
 const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
 const UPDATE_INTERVAL_MS = 1000 / 60;
 const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
@@ -37,10 +38,10 @@ let dino;
 
 function createDinoState() {
     return {
-        x: 64,
-        y: HEIGHT - 64,
-        width: 64,
-        height: 64,
+        x: DINO_SIZE.width,
+        y: HEIGHT - DINO_SIZE.height,
+        width: DINO_SIZE.width,
+        height: DINO_SIZE.height,
         yVelocity: 0,
         isOnGround: false,
         isJumping: false,

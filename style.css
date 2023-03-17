@@ -1,3 +1,10 @@
+:root {
+    --rabbit-width: 64px;
+    --rabbit-height: 118px;
+    --egg-width: 64px;
+    --egg-height: 81px;
+}
+
 body {
     margin: 0;
     background-color: #ffffff;
@@ -26,8 +33,8 @@ body {
 
 #dino {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    width: var(--rabbit-width);
+    height: var(--rabbit-height);
     left: 64px;
 
     /* background-color: blue; */
@@ -35,8 +42,8 @@ body {
 
 .obstacle {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    width: var(--egg-width);
+    height: var(--egg-height);
 
     /* background-color: black; */
 }
