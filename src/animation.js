@@ -1,4 +1,5 @@
-const ANIMATION_INTERVAL_MS = 250;
+import { ANIMATION_INTERVAL_MS } from "./settings.js";
+
 let animationInterval = null;
 
 export function startAnimations() {

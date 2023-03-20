@@ -1,4 +1,4 @@
-const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
+import { LOCALSTORAGE_HIGHSCORE_KEY } from "./settings.js";
 
 const SCORE_EL = document.querySelector("#score");
 const HIGHSCORE_MESSAGE_EL = document.querySelector("#highscore");

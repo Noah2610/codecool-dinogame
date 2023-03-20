@@ -5,7 +5,10 @@ export const JUMP_STRENGTH = -20;
 export const JUMP_STOP_VELOCITY = -4;
 export const DINO_SIZE = { width: 64, height: 118 };
 export const OBSTACLE_SIZE = { width: 64, height: 81 };
+export const UPDATE_INTERVAL_MS = 1000 / 60;
 export const ANIMATION_INTERVAL_MS = 250;
+export const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
+export const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
 
 export const ANIMATIONS = {
     run: ["assets/rabbit-sit.png", "assets/rabbit-stand.png"],

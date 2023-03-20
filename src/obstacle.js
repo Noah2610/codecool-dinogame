@@ -1,9 +1,14 @@
-import { WIDTH, HEIGHT, ANIMATIONS, OBSTACLE_SIZE } from "./settings.js";
+import {
+    WIDTH,
+    HEIGHT,
+    ANIMATIONS,
+    OBSTACLE_SIZE,
+    OBSTACLE_SPAWN_INTERVAL_MS_RANGE,
+} from "./settings.js";
 import { setElementPosition, randomInRange } from "./util.js";
 import { addEntity } from "./game.js";
 
 export const OBSTACLES_EL = document.querySelector("#obstacles");
-const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
 
 let obstacleSpawnTimeout = null;
 

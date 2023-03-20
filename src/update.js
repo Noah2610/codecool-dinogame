@@ -1,10 +1,9 @@
-import { ANIMATIONS, HEIGHT, GRAVITY } from "./settings.js";
+import { ANIMATIONS, HEIGHT, GRAVITY, UPDATE_INTERVAL_MS } from "./settings.js";
 import { setAnimation } from "./animation.js";
 import { setElementPosition, doEntitiesCollide } from "./util.js";
 import { gameOver } from "./game.js";
 import { renderScore } from "./highscore.js";
 
-const UPDATE_INTERVAL_MS = 1000 / 60;
 let updateInterval = null;
 
 export function startUpdateLoop() {
