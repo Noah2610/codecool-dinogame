@@ -2,7 +2,7 @@ import { ANIMATIONS, HEIGHT, GRAVITY, UPDATE_INTERVAL_MS } from "./settings.js";
 import { setAnimation } from "./animation.js";
 import { setElementPosition, doEntitiesCollide, setMessage } from "./util.js";
 import { LOCALSTORAGE_HIGHSCORE_KEY } from "./settings.js";
-import { stopGame } from "./index.js";
+import { stopGame } from "./main.js";
 
 const SCORE_EL = document.querySelector("#score");
 const HIGHSCORE_MESSAGE_EL = document.querySelector("#highscore");
