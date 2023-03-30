@@ -1,8 +1,11 @@
 import { ANIMATIONS, HEIGHT, GRAVITY, UPDATE_INTERVAL_MS } from "./settings.js";
 import { setAnimation } from "./animation.js";
-import { setElementPosition, doEntitiesCollide } from "./util.js";
-import { gameOver } from "./game.js";
-import { renderScore } from "./highscore.js";
+import { setElementPosition, doEntitiesCollide, setMessage } from "./util.js";
+import { LOCALSTORAGE_HIGHSCORE_KEY } from "./settings.js";
+import { stopGame } from "./index.js";
+
+const SCORE_EL = document.querySelector("#score");
+const HIGHSCORE_MESSAGE_EL = document.querySelector("#highscore");
 
 let updateInterval = null;
 
@@ -105,4 +108,48 @@ function handleScore() {
             renderScore(++window.game.score);
         }
     }
+}
+
+export function renderScore(score) {
+    SCORE_EL.innerText = score;
+}
+
+export function handleHighscore() {
+    const highscore = getHighscore();
+    if (window.game.score > highscore) {
+        saveHighscore(window.game.score);
+        setHighscoreMessage("New Highscore!");
+    } else {
+        setHighscoreMessage(`Highscore: ${highscore}`);
+    }
+}
+
+export function getHighscore() {
+    const value = window.localStorage.getItem(LOCALSTORAGE_HIGHSCORE_KEY);
+    if (value === null) {
+        return 0;
+    }
+
+    const highscore = parseInt(value);
+    return Number.isNaN(highscore) ? 0 : highscore;
+}
+
+export function saveHighscore(score) {
+    window.localStorage.setItem(LOCALSTORAGE_HIGHSCORE_KEY, score.toString());
+}
+
+export function setHighscoreMessage(msg) {
+    HIGHSCORE_MESSAGE_EL.innerText = msg;
+    HIGHSCORE_MESSAGE_EL.classList.remove("hidden");
+}
+
+export function clearHighscoreMessage() {
+    HIGHSCORE_MESSAGE_EL.classList.add("hidden");
+}
+
+function gameOver() {
+    stopGame();
+    window.game.isGameOver = true;
+    setMessage("GAME OVER press R to reset");
+    handleHighscore();
 }
