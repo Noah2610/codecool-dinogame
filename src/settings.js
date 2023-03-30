@@ -10,10 +10,15 @@ export const ANIMATION_INTERVAL_MS = 250;
 export const LOCALSTORAGE_HIGHSCORE_KEY = "dino-highscore";
 export const OBSTACLE_SPAWN_INTERVAL_MS_RANGE = [500, 2000];
 
+const ASSETS_BASE_URL =
+    "https://noah2610.github.io/cc-easter-challenge-assets/";
+
+const asset = (path) => `${ASSETS_BASE_URL}/${path}`;
+
 export const ANIMATIONS = {
-    run: ["assets/rabbit-sit.png", "assets/rabbit-stand.png"],
-    jump: ["assets/rabbit-jump.png"],
-    obstacle: ["assets/egg-0.png", "assets/egg-1.png"],
+    run: [asset("rabbit-sit.png"), asset("rabbit-stand.png")],
+    jump: [asset("rabbit-jump.png")],
+    obstacle: [asset("egg-0.png"), asset("egg-1.png")],
 };
 
 export const CONTROLS = {
